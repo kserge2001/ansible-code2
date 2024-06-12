@@ -1,0 +1,9 @@
+---
+- name: stop ntp service
+  action: >
+    service name={{ ntp_service }} state=stopped
+  ignore_errors: true
+
+- name: start ntp service
+  action: >
+    service name={{ ntp_service }} state=started

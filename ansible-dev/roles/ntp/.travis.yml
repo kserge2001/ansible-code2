@@ -1,0 +1,30 @@
+---
+language: python
+services: docker
+
+env:
+  global:
+    - ROLE_NAME: ansible-ssh-config
+  matrix:
+    # Test defaults.
+    # - MOLECULE_DISTRO: centos7
+    # - MOLECULE_DISTRO: ubuntu1804
+    # - MOLECULE_DISTRO: ubuntu1804
+    # - MOLECULE_DISTRO: ubuntu1604
+    - MOLECULE_DISTRO: debian9
+    - MOLECULE_TAG: python2
+
+install:
+  # Install test dependencies.
+  - pip install molecule==2.19 ansible==2.10.3 docker
+
+before_script: []
+
+script:
+  # Run tests.
+  - molecule --version
+  - ansible --version
+  - molecule --debug test
+
+notifications:
+  webhooks: https://galaxy.ansible.com/api/v1/notifications/

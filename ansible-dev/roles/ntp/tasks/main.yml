@@ -1,0 +1,69 @@
+---
+###################
+# Gather OS Facts #
+###################
+- name: gather os specific variables
+  include_vars: "{{ item }}"
+  with_first_found:
+    - "{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yml"
+    - "{{ ansible_distribution }}.yml"
+    - "{{ ansible_os_family }}.yml"
+  tags:
+    - vars
+    - install
+
+- name: perform an apt update
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+  when:
+    - ansible_os_family == 'Debian'
+
+- name: install ntp package
+  package:
+    name: "{{ ntp_packages }}"
+    state: present
+  notify: stop ntp service
+
+- name: verify that ntp is installed
+  stat:
+    path: /etc/ntp.conf
+  register: ntp_installed
+
+- name: catch up hardware time with ntp
+  shell: hwclock -s
+  failed_when: false
+  changed_when: false
+
+- name: update system date manually
+  shell: ntpdate 1.us.pool.ntp.org
+  when:
+    - not ntp_installed.stat.exists | bool
+
+- name: detect if running on bare metal hardware
+  shell: "dmidecode -t system | grep 'Product' | awk '{ print $3 }'"
+  register: ntp_on_hardware
+  changed_when: false
+  when:
+    - not ntp_installed.stat.exists | bool
+
+# Only run if on a hardware system. i.e. non-vm
+- name: update hardware clock manually
+  shell: hwclock --systohc
+  args:
+    executable: /bin/bash
+  when:
+    - not ntp_installed.stat.exists | bool
+    - not ntp_on_hardware.stdout == "BHYVE"
+    - not ntp_on_hardware.stdout == "KVM"
+
+- name: configure ntp
+  template:
+    src: "{{ item }}"
+    dest: "{{ ntp_config }}"
+    mode: 0655
+  with_first_found:
+    - "{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.ntp.conf.j2"
+    - "{{ ansible_distribution }}.ntp.conf.j2"
+    - "{{ ansible_os_family }}.ntp.conf.j2"
+  notify: start ntp service

@@ -1,0 +1,18 @@
+---
+- hosts: wind
+  tasks:
+    - name: Create a directory
+      win_file:
+        path: C:\Users\Administrator\Desktop\serge
+        state: directory
+    - name: download file online 
+      win_get_url:
+        dest: C:\Users\Administrator\Desktop\serge
+        url: https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.9.3.tar.xz
+
+    - name: Update all package
+      win_updates:
+        category_names: '*'
+        reboot: true
+
+    

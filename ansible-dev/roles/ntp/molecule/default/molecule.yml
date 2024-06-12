@@ -1,0 +1,32 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: docker
+platforms:
+  - name: ntp-instance
+    image: "geerlingguy/docker-${MOLECULE_DISTRO:-debian10}-ansible:${MOLECULE_TAG:-latest}"
+    command: ${MOLECULE_DOCKER_COMMAND:-""}
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    privileged: true
+    pre_build_image: true
+provisioner:
+  name: ansible
+scenario:
+  name: default
+  test_sequence:
+    - destroy
+    - dependency
+    - prepare
+    - lint
+    - syntax
+    - create
+    - converge
+    - idempotence
+    - side_effect
+    - verify
+    - destroy
+Scenario: 'default'
+verifier:
+  name: ansible
