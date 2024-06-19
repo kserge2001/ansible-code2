@@ -1,0 +1,28 @@
+---
+- hosts: ws
+  become: yes
+  become_user: root 
+  ignore_errors: yes
+  tasks:
+    - name: Delete Old Artifact
+      file:
+        path: /opt/qa/spg/*.jar
+        state: absent
+    
+    - name: Get the PID
+      shell:  lsof -i :8082
+      register: pid_output
+
+    - name: Kill Running App
+      shell: kill -9 pid_output.stdout
+      when: pid_output.stdout != ''
+
+    - name: Download New Artifact  
+      get_url:
+        url: http://198.58.119.40:8081/repository/prof-repo/bioMedical-0.0.6-SNAPSHOT.jar
+        dest: /opt/qa/spg
+        url_username: admin
+        url_password: password
+
+    - name: Run the App
+      shell: nohup java -jar /opt/qa/spg/*.jar > /opt/qa/spg.log 2>&1 &
