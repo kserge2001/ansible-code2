@@ -19,7 +19,7 @@
 
     - name: Download New Artifact  
       get_url:
-        url: http://198.58.119.40:8081/repository/prof-repo/bioMedical-0.0.6-SNAPSHOT.jar
+        url: http://34.201.161.49:8081/artifactory/geolocation/geo/bio_17.jar
         dest: /opt/qa/spg
         url_username: admin
         url_password: password
